@@ -1,0 +1,64 @@
+
+*** BEGIN OF TEST RTEMS-KASAN ***
+
+--- clean: in-bounds access, no report expected ---
+
+--- heap-buffer-overflow: write one past a 16-byte object ---
+
+=================================================================
+ERROR: RTEMS-KASAN: heap-buffer-overflow on address 0x80070e00
+WRITE of size 1 at 0x80070e00
+0x80070e00 is located 0 bytes after a 16-byte region [0x80070df0,0x80070e00)
+the region was allocated and is live
+=================================================================
+
+--- heap-buffer-underflow: read one before a 16-byte object ---
+
+=================================================================
+ERROR: RTEMS-KASAN: heap-buffer-underflow on address 0x80070e1f
+READ of size 1 at 0x80070e1f
+0x80070e1f is located 1 bytes before a 16-byte region [0x80070e20,0x80070e30)
+the region was allocated and is live
+=================================================================
+
+--- heap-use-after-free: read after free ---
+
+=================================================================
+ERROR: RTEMS-KASAN: heap-use-after-free on address 0x80070e50
+READ of size 4 at 0x80070e50
+0x80070e50 is located 0 bytes before a 16-byte region [0x80070e50,0x80070e60)
+the region was FREED
+=================================================================
+
+--- ragged tail: 20-byte object, byte 20 is out of bounds ---
+
+=================================================================
+ERROR: RTEMS-KASAN: heap-buffer-overflow on address 0x80070e94
+WRITE of size 1 at 0x80070e94
+0x80070e94 is located 0 bytes after a 20-byte region [0x80070e80,0x80070e94)
+the region was allocated and is live
+=================================================================
+
+--- double-free ---
+
+=================================================================
+ERROR: RTEMS-KASAN: double-free on address 0x80070eb8
+0x80070eb8 is located 0 bytes before a 8-byte region [0x80070eb8,0x80070ec0)
+the region was FREED
+=================================================================
+
+--- summary ---
+instrumented accesses checked : 70
+violations reported           : 5
+sanitized allocations         : 8
+frees                         : 6
+passed through (too large)    : 0
+high water                    : 351 bytes
+
+*** END OF TEST RTEMS-KASAN ***
+
+[ RTEMS shutdown ]
+RTEMS version: 7.0.0.fa81c051703b69f0bcac4ac68a03b09434e70ae5
+RTEMS tools: 15.2.0 20250808 (RTEMS 7, Build 2026.06.12, RSB 105f43d299cb5c367fc5f2b0147f401721ed3d9c-modified, Newlib 7d4336cf)
+executing thread ID: 0x0a010001
+executing thread name: UI1 
