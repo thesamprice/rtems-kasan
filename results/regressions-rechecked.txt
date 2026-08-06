@@ -1,0 +1,32 @@
+FAIL block11 init.c: 284 sc == RTEMS_NO_MEMORY
+FAIL exit04 fatal source: 7 (RTEMS_FATAL_SOURCE_ASSERT)
+FAIL fsimfsgeneric01 fatal source: 9 (RTEMS_FATAL_SOURCE_EXCEPTION)
+FAIL malloc04 init.c: 135 p == NULL
+FAIL malloctest init.c: 1641 t == u
+FAIL psxchroot01 
+FAIL psximfs02 init.c: 137 status == -1
+FAIL psxpipe01 init.c: 109 status == -1
+FAIL rbheap01 init.c: 369 p == NULL
+FAIL sp01 
+PASS sp03 
+PASS sp04 
+PASS sp05 
+PASS sp06 
+PASS sp11 
+PASS sp12 
+PASS sp13 
+FAIL spfifo02 init.c: 62 fd == -1
+FAIL spmountmgr01 init.c: 74 status == -1
+FAIL spprivenv01 init.c: 80 sc == RTEMS_NO_MEMORY
+FAIL spstdthreads01 init.c: 286 status == thrd_nomem
+FAIL spstkalloc02 init.c: 187 stack_space_size == _CONFIGURE_STACK_SPACE_SIZE
+PASS sptimecounter02 
+FAIL sptls01 init.c: 89 tls_size == 1
+FAIL sptls03 init.c: 50 executing->Start.tls_area == NULL
+FAIL termios01 
+PASS ticker 
+FAIL ts-fatal-idle-thread-create-failed 
+FAIL ts-fatal-init-task-construct-failed 
+FAIL ts-performance-no-clock-0 
+FAIL ts-validation-acfg-0 fatal source: 0 (INTERNAL_ERROR_CORE)
+FAIL ts-validation-acfg-1 fatal source: 0 (INTERNAL_ERROR_CORE)

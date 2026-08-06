@@ -44,9 +44,21 @@ extern "C" {
    shadow encoding; do not change without revisiting kasan_poison(). */
 #define KASAN_GRANULE 8u
 
-/* Red zone placed on each side of an allocation. */
+/* Red zone placed on each side of an allocation.  Must be a multiple of
+   KASAN_ALIGN so that the payload keeps the alignment malloc promises. */
 #ifndef KASAN_REDZONE
 #define KASAN_REDZONE 16u
+#endif
+
+/*
+ * Alignment guaranteed to callers.  malloc() must return memory aligned for
+ * any type, which RTEMS states as CPU_HEAP_ALIGNMENT -- 16 on rv64imafdc,
+ * and larger than KASAN_GRANULE on most 64-bit targets.  Getting this wrong
+ * does not trip the sanitizer; it corrupts unrelated code that assumes the
+ * guarantee, which is exactly how it was found here.
+ */
+#ifndef KASAN_ALIGN
+#define KASAN_ALIGN 16u
 #endif
 
 /* Shadow byte values.  0..7 mean "the first N bytes of this granule are

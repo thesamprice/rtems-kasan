@@ -15,7 +15,7 @@
 /* ------------------------------------------------------------------ state */
 
 static uint8_t kasan_arena[ KASAN_ARENA_SIZE ]
-  __attribute__( ( aligned( KASAN_GRANULE ) ) );
+  __attribute__( ( aligned( KASAN_ALIGN ) ) );
 
 static uint8_t kasan_shadow[ KASAN_ARENA_SIZE / KASAN_GRANULE ];
 
@@ -150,9 +150,19 @@ static void *kasan_alloc( size_t size )
     size = 1u;
   }
 
-  /* left red zone (holding the header) + payload rounded up + right red zone */
+  /* Reject anything that cannot possibly fit before doing arithmetic on it.
+     Rounding SIZE_MAX up to an alignment boundary wraps to zero, which would
+     otherwise turn a request for SIZE_MAX bytes into a successful 32-byte
+     allocation -- found by spfreechain01, which asks for exactly that and
+     expects NULL. */
+  if ( size > KASAN_ARENA_SIZE ) {
+    return NULL;
+  }
+
+  /* left red zone (holding the header) + payload + right red zone, with the
+     total rounded to KASAN_ALIGN so the next payload stays aligned too */
   need = KASAN_REDZONE
-         + ( ( size + KASAN_GRANULE - 1u ) & ~( (size_t) KASAN_GRANULE - 1u ) )
+         + ( ( size + KASAN_ALIGN - 1u ) & ~( (size_t) KASAN_ALIGN - 1u ) )
          + KASAN_REDZONE;
 
   if ( kasan_brk + need > KASAN_ARENA_SIZE ) {
@@ -322,8 +332,16 @@ void __wrap_free( void *p )
 
 void *__wrap_calloc( size_t n, size_t size )
 {
-  size_t total = n * size;
-  void  *p     = __wrap_malloc( total );
+  size_t total;
+  void  *p;
+
+  /* Overflow in n * size would under-allocate and hand back a short buffer. */
+  if ( n != 0u && size > (size_t) -1 / n ) {
+    return NULL;
+  }
+
+  total = n * size;
+  p     = __wrap_malloc( total );
 
   if ( p != NULL ) {
     memset( p, 0, total );
@@ -399,4 +417,47 @@ void __asan_storeN_noabort( uintptr_t addr, size_t size )
 void __asan_handle_no_return( void );
 void __asan_handle_no_return( void )
 {
+}
+
+/*
+ * C++ translation units with dynamically initialised namespace-scope objects
+ * emit these around the initialisation, even with --param asan-globals=0.
+ * Upstream ASan uses them to suppress the "initialization order fiasco"
+ * check; with globals uninstrumented there is nothing to do, but the symbols
+ * must resolve or every C++ file fails to link.
+ */
+void __asan_before_dynamic_init( const char *module_name );
+void __asan_before_dynamic_init( const char *module_name )
+{
+  (void) module_name;
+}
+
+void __asan_after_dynamic_init( void );
+void __asan_after_dynamic_init( void )
+{
+}
+
+/*
+ * Emitted when globals are instrumented.  Not used with
+ * --param asan-globals=0, but cheap to provide so that raising that setting
+ * does not immediately break the link.
+ */
+void __asan_register_globals( void *globals, size_t n );
+void __asan_register_globals( void *globals, size_t n )
+{
+  (void) globals;
+  (void) n;
+}
+
+void __asan_unregister_globals( void *globals, size_t n );
+void __asan_unregister_globals( void *globals, size_t n )
+{
+  (void) globals;
+  (void) n;
+}
+
+void __asan_init( void );
+void __asan_init( void )
+{
+  rtems_kasan_init();
 }

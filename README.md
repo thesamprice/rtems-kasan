@@ -33,6 +33,9 @@ first cut at closing that gap.
 Demo result on `qemu-system-riscv64 -M virt`: 5 seeded bugs, 5 reports, and
 the deliberately clean case reports nothing.
 
+**Full RTEMS testsuite run: 671 tests, zero violations in RTEMS** — and two real
+bugs found in this runtime. See [`RESULTS.md`](RESULTS.md).
+
 ## Why this approach
 
 The obvious route — port `libsanitizer` — is a dead end. GCC's
@@ -203,6 +206,8 @@ Read these before trusting it.
 | `src/rtems-kasan.c` | the runtime: shadow, allocator, compiler entry points |
 | `src/init.c` | demo with five seeded bugs and one clean case |
 | `build.sh` | builds against an installed BSP via its `.pc` file |
+| `RESULTS.md` | full testsuite comparison, baseline vs instrumented |
+| `results/` | per-test verdicts for both runs |
 
 ## Background
 
