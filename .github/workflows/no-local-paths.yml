@@ -1,0 +1,13 @@
+name: no local paths
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Check tracked files for developer absolute paths
+        run: ./tools/check-local-paths.sh

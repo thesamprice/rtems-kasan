@@ -1,0 +1,30 @@
+#!/bin/sh
+# Refuse to commit local paths or the invoking username.
+#
+# Three separate leaks reached public history before this existed: a hardcoded
+# QEMU path, an objdump build-path header, and dejagnu .sum files.  Every one
+# came from a *generated* artifact -- they embed paths nobody typed, so
+# auditing the files you were thinking about misses them.
+#
+# Enable with:  git config core.hooksPath .githooks
+#
+# Two checks, because they catch different things:
+#   1. the staged diff, including the invoking username with no path attached
+#      ("Test run by <user>" in a .sum header leaked exactly that way)
+#   2. the whole tree, so a file that slipped through earlier is still caught
+
+set -e
+
+# The checkers necessarily contain the patterns they look for, so exclude them
+# or installing this hook trips it.
+me=$(id -un)
+if git diff --cached -U0 -- . \
+       ':(exclude).githooks/pre-commit' \
+       ':(exclude)tools/check-local-paths.sh' \
+     | grep -nE "^\+.*(/Users/[a-z]|/home/[a-z]|/private/tmp/claude|${me})"; then
+    echo "pre-commit: local path or username in staged content (above)." >&2
+    echo "Scrub it, or pass --no-verify if it is genuinely intended." >&2
+    exit 1
+fi
+
+exec ./tools/check-local-paths.sh

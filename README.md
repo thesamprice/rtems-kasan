@@ -209,6 +209,19 @@ Read these before trusting it.
 | `RESULTS.md` | full testsuite comparison, baseline vs instrumented |
 | `results/` | per-test verdicts for both runs |
 
+## Contributing
+
+```sh
+git config core.hooksPath .githooks    # once, after cloning
+```
+
+`tools/check-local-paths.sh` refuses developer home directory paths, agent scratch
+directories and the invoking username in tracked files. It runs as a pre-commit hook
+if you enable the hooks path above, and in CI regardless. Generated artifacts -- build
+logs, dejagnu `.sum` files, objdump output -- embed paths nobody typed, which is how
+three of them reached public history in the sibling repository before there was a
+check.
+
 ## Background
 
 This came out of a MicroBlaze linker bug where an ASan-instrumented *linker*
